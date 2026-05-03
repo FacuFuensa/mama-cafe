@@ -1,0 +1,76 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+}
+
+const {
+  title,
+  description,
+  image = '/images/hero-carrot-cakes.jpg',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CafeOrCoffeeShop",
+  "name": "Māma Café",
+  "url": canonicalURL.toString(),
+  "image": ogImage.toString(),
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Av. Solano Vera 1174",
+    "addressLocality": "Yerba Buena",
+    "addressRegion": "Tucumán",
+    "addressCountry": "AR"
+  },
+  "telephone": "+54-9-381-000-0000",
+  "openingHours": [
+    "Mo-Fr 08:00-21:30",
+    "Sa-Su 08:00-13:00",
+    "Sa-Su 17:00-21:30"
+  ],
+  "sameAs": [
+    "https://instagram.com/mamacafetuc"
+  ]
+};
+---
+
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body class="bg-off-white text-gris font-sans">
+    <slot />
+  </body>
+</html>

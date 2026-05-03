@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import MenuSectionComponent from '../components/MenuSection.astro';
+import Horarios from '../components/Horarios.astro';
+import Ubicacion from '../components/Ubicacion.astro';
+import Footer from '../components/Footer.astro';
+import { menu } from '../data/menu.ts';
+---
+
+<BaseLayout
+  title="Māma Café | Café de especialidad en Yerba Buena"
+  description="Una taza de café, una charla. Café de especialidad en Yerba Buena, Tucumán."
+>
+  <Hero />
+
+  <section id="menu">
+    <main class="max-w-2xl mx-auto px-4 py-16 md:py-24">
+      <h2 class="text-3xl md:text-4xl font-light text-gris text-center mb-16">Carta</h2>
+
+      {menu.map((section) => (
+        <MenuSectionComponent section={section} />
+      ))}
+    </main>
+  </section>
+
+  <Horarios />
+
+  <Ubicacion />
+
+  <Footer />
+</BaseLayout>

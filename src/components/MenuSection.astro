@@ -1,0 +1,44 @@
+---
+import type { MenuSection } from '../data/menu.ts';
+
+interface Props {
+  section: MenuSection;
+}
+
+const { section } = Astro.props;
+---
+
+<section class="mb-16">
+  <h2 class="text-xs font-semibold tracking-[0.2em] uppercase text-gris mb-6 pb-3 border-b border-gris/20">
+    {section.category}
+  </h2>
+
+  <ul>
+    {section.items.map((item) => (
+      <li class="pb-6 mb-6 border-b border-gris/10 last:border-0 last:mb-0 last:pb-0">
+        <div class="flex items-baseline justify-between gap-4">
+          <span class="text-[0.9375rem] font-medium leading-snug text-gris">
+            {item.name}
+            {item.tags?.includes('sin-tacc') && (
+              <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-dulce/15 text-dulce align-middle">
+                Sin TACC
+              </span>
+            )}
+          </span>
+          <span
+            class="shrink-0 text-gris/40 tabular-nums text-sm"
+            set:html={item.price === 0 ? '&mdash;' : '$' + item.price.toLocaleString('es-AR')}
+          />
+        </div>
+
+        {item.description && (
+          <p class="mt-1.5 text-sm text-gris/70 leading-relaxed">{item.description}</p>
+        )}
+
+        {item.optional && (
+          <p class="mt-1 text-xs italic text-dulce">{item.optional}</p>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>
