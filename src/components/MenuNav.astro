@@ -1,0 +1,75 @@
+---
+import { superCategories } from '../data/categories.ts';
+---
+
+<!--
+  Sentinel: forces Tailwind to generate these classes used only in JS.
+  classList.toggle() at runtime won't be scanned by the CSS bundler otherwise.
+-->
+<div class="hidden bg-dulce border-dulce text-off-white text-gris/60 border-gris/15" aria-hidden="true"></div>
+
+<nav class="sticky top-0 z-10 bg-off-white/95 backdrop-blur-sm border-b border-gris/10 -mx-4 px-4 py-4">
+  <div class="menu-nav-scroll flex gap-2 overflow-x-auto">
+    {superCategories.map(({ label, anchor }) => (
+      <a
+        href={`#${anchor}`}
+        data-anchor={anchor}
+        class="menu-nav-pill whitespace-nowrap px-4 py-2 rounded-full text-xs tracking-[0.2em] uppercase transition-colors text-gris/60 border border-gris/15"
+      >
+        {label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .menu-nav-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .menu-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+<script>
+  const pills = document.querySelectorAll<HTMLAnchorElement>('.menu-nav-pill');
+  const groups = document.querySelectorAll<HTMLElement>('[data-menu-group]');
+
+  function setActive(anchor: string) {
+    pills.forEach(pill => {
+      const isActive = pill.dataset.anchor === anchor;
+      pill.classList.toggle('bg-dulce', isActive);
+      pill.classList.toggle('border-dulce', isActive);
+      pill.classList.toggle('text-off-white', isActive);
+      pill.classList.toggle('text-gris/60', !isActive);
+      pill.classList.toggle('border-gris/15', !isActive);
+    });
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const intersecting = entries.filter(e => e.isIntersecting);
+      if (intersecting.length === 0) return;
+      // If multiple groups are visible, prefer the topmost
+      intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const anchor = (intersecting[0].target as HTMLElement).dataset.menuGroup;
+      if (anchor) setActive(anchor);
+    },
+    { rootMargin: '-30% 0px -60% 0px' }
+  );
+
+  groups.forEach(group => observer.observe(group));
+
+  // Smooth scroll with scroll-margin-top offset handled by CSS
+  pills.forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const anchor = pill.dataset.anchor;
+      if (!anchor) return;
+      const target = document.getElementById(anchor);
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
