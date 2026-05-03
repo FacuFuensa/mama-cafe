@@ -1,4 +1,5 @@
 ---
+import { whatsappURL } from '../data/contact.ts';
 ---
 
 <section class="w-full py-20 md:py-32">
@@ -23,6 +24,15 @@
       class="inline-block mt-12 text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco"
     >
       Ver la carta ↓
+    </a>
+
+    <a
+      href={whatsappURL}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-block mt-4 text-xs tracking-[0.2em] uppercase text-gris/60 hover:text-dulce transition-colors duration-200"
+    >
+      Pedí o reservá
     </a>
 
   </div>
