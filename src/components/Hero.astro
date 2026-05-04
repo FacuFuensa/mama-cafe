@@ -2,7 +2,7 @@
 import { whatsappURL } from '../data/contact.ts';
 ---
 
-<section class="w-full py-20 md:py-32">
+<section class="relative w-full min-h-screen flex flex-col items-center justify-center">
   <div class="max-w-2xl md:max-w-3xl mx-auto px-4 text-center">
 
     <h1 class="font-sans font-bold text-5xl md:text-7xl text-gris tracking-tight leading-none">
@@ -21,10 +21,10 @@ import { whatsappURL } from '../data/contact.ts';
 
     <div class="flex flex-col items-center gap-4 mt-12">
       <a
-        href="#menu"
+        href="#horarios"
         class="text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco"
       >
-        Ver la carta ↓
+        Ver los horarios ↓
       </a>
 
       <a
@@ -38,4 +38,12 @@ import { whatsappURL } from '../data/contact.ts';
     </div>
 
   </div>
+
+  <a
+    href="#horarios"
+    aria-label="Desplazarse a horarios"
+    class="absolute bottom-8 left-1/2 -translate-x-1/2 text-2xl text-gris/40 hover:text-dulce transition-colors duration-200 animate-soft-pulse"
+  >
+    ↓
+  </a>
 </section>
