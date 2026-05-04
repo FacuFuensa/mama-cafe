@@ -13,7 +13,7 @@ const { section } = Astro.props;
     {section.category}
   </h2>
 
-  <ul>
+  <ul class="grid grid-cols-1 md:grid-cols-2 md:gap-x-12">
     {section.items.map((item) => (
       <li class="pb-6 mb-6 border-b border-gris/10 last:border-0 last:mb-0 last:pb-0">
         <div class="flex items-baseline justify-between gap-4">
