@@ -37,6 +37,7 @@ import { superCategories } from '../data/categories.ts';
   const groups = document.querySelectorAll<HTMLElement>('[data-menu-group]');
 
   function setActive(anchor: string) {
+    let activeLink: HTMLAnchorElement | null = null;
     pills.forEach(pill => {
       const isActive = pill.dataset.anchor === anchor;
       pill.classList.toggle('bg-dulce', isActive);
@@ -44,7 +45,15 @@ import { superCategories } from '../data/categories.ts';
       pill.classList.toggle('text-off-white', isActive);
       pill.classList.toggle('text-gris/60', !isActive);
       pill.classList.toggle('border-gris/15', !isActive);
+      if (isActive) activeLink = pill;
     });
+    if (activeLink) {
+      (activeLink as HTMLAnchorElement).scrollIntoView({
+        behavior: 'smooth',
+        inline: 'nearest',
+        block: 'nearest',
+      });
+    }
   }
 
   const observer = new IntersectionObserver(
