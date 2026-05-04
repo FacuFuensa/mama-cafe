@@ -19,21 +19,23 @@ import { whatsappURL } from '../data/contact.ts';
       Café de especialidad · Yerba Buena, Tucumán
     </p>
 
-    <a
-      href="#menu"
-      class="inline-block mt-12 text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco"
-    >
-      Ver la carta ↓
-    </a>
+    <div class="flex flex-col items-center gap-4 mt-12">
+      <a
+        href="#menu"
+        class="text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco"
+      >
+        Ver la carta ↓
+      </a>
 
-    <a
-      href={whatsappURL}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-block mt-4 text-xs tracking-[0.2em] uppercase text-gris/60 hover:text-dulce transition-colors duration-200"
-    >
-      Pedí o reservá
-    </a>
+      <a
+        href={whatsappURL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-xs tracking-[0.2em] uppercase text-gris/60 hover:text-dulce transition-colors duration-200"
+      >
+        Pedí o reservá
+      </a>
+    </div>
 
   </div>
 </section>
