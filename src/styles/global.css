@@ -11,7 +11,11 @@
   --color-ladrillo: #aa6552;
   --color-dark-choco: #27241c;
 }
-
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
 @layer base {
   body {
     background-color: var(--color-off-white);
