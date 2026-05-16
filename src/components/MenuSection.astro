@@ -1,5 +1,6 @@
 ---
 import type { MenuSection } from '../data/menu.ts';
+import { superCategories } from '../data/categories.ts';
 import CoffeeGlass from './CoffeeGlass.astro';
 
 interface Props {
@@ -7,11 +8,20 @@ interface Props {
 }
 
 const { section } = Astro.props;
+
+const superCat = superCategories.find(sc => sc.sections.includes(section.category));
+const image = superCat?.sections[0] === section.category ? superCat.image : undefined;
+const imageSizeClass =
+  superCat?.label === "Promos Coworkers"       ? "h-8 md:h-10 w-auto opacity-75"  :
+  superCat?.label === "Desayunos y Meriendas" ? "h-10 md:h-12 w-auto opacity-75" :
+  superCat?.label === "Infusiones"             ? "h-12 md:h-14 w-auto opacity-75" :
+                                                 "h-20 md:h-24 w-auto opacity-75";
 ---
 
 <section class="mb-16">
-  <h2 class="text-xs font-semibold tracking-[0.2em] uppercase text-gris mb-6 pb-3 border-b border-gris/20">
-    {section.category}
+  <h2 class="text-xs font-semibold tracking-[0.2em] uppercase text-gris mb-6 pb-3 border-b border-gris/20 flex items-center justify-between">
+    <span>{section.category}</span>
+    {image && <img src={image} alt="" class={imageSizeClass} />}
   </h2>
 
   {section.category === "Infusiones" && (
