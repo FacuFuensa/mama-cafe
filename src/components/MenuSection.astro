@@ -44,9 +44,12 @@ const imageSizeClass =
     </div>
   )}
 
-  <ul class="grid grid-cols-1 md:grid-cols-2 md:gap-x-12">
+  <ul class="grid grid-cols-1 md:grid-cols-2 md:gap-x-12" data-menu-section>
     {section.items.map((item) => (
-      <li class="pb-6 mb-6 border-b border-gris/10 last:border-0 last:mb-0 last:pb-0">
+      <li
+        class={`pb-6 mb-6 border-b border-gris/10 last:border-0 last:mb-0 last:pb-0${item.image ? ' cursor-pointer select-none' : ''}`}
+        {...(item.image ? { 'data-menu-item': '' } : {})}
+      >
         <div class="flex items-center gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline justify-between gap-4">
@@ -56,6 +59,21 @@ const imageSizeClass =
                   <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-dulce/15 text-dulce align-middle">
                     Sin TACC
                   </span>
+                )}
+                {item.image && (
+                  <svg
+                    data-chevron
+                    class="inline-block ml-1.5 align-middle"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    style="transition: transform 0.3s ease;"
+                  >
+                    <path d="M2 4L6 8L10 4" stroke="#a47c53" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 )}
               </span>
               <span
@@ -71,6 +89,19 @@ const imageSizeClass =
             {item.optional && (
               <p class="mt-1 text-xs italic text-dulce">{item.optional}</p>
             )}
+
+            {item.image && (
+              <div
+                data-image-container
+                style="max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease;"
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  class="mt-3 rounded-lg w-full max-h-48 md:max-h-72 object-cover"
+                />
+              </div>
+            )}
           </div>
 
           {item.composition && (
@@ -81,3 +112,46 @@ const imageSizeClass =
     ))}
   </ul>
 </section>
+
+<script>
+  document.querySelectorAll('[data-menu-section]').forEach((section) => {
+    let openItem: Element | null = null;
+
+    section.addEventListener('click', (e) => {
+      const li = (e.target as Element).closest('[data-menu-item]');
+      if (!li) return;
+
+      const container = li.querySelector('[data-image-container]') as HTMLElement | null;
+      const chevron = li.querySelector('[data-chevron]') as HTMLElement | null;
+      if (!container || !chevron) return;
+
+      const isOpen = li.getAttribute('data-open') === 'true';
+
+      if (openItem && openItem !== li) {
+        const prevContainer = openItem.querySelector('[data-image-container]') as HTMLElement | null;
+        const prevChevron = openItem.querySelector('[data-chevron]') as HTMLElement | null;
+        if (prevContainer) {
+          prevContainer.style.maxHeight = '0';
+          prevContainer.style.opacity = '0';
+        }
+        if (prevChevron) prevChevron.style.transform = 'rotate(0deg)';
+        openItem.setAttribute('data-open', 'false');
+        openItem = null;
+      }
+
+      if (isOpen) {
+        container.style.maxHeight = '0';
+        container.style.opacity = '0';
+        chevron.style.transform = 'rotate(0deg)';
+        li.setAttribute('data-open', 'false');
+        openItem = null;
+      } else {
+        container.style.maxHeight = container.scrollHeight + 'px';
+        container.style.opacity = '1';
+        chevron.style.transform = 'rotate(180deg)';
+        li.setAttribute('data-open', 'true');
+        openItem = li;
+      }
+    });
+  });
+</script>

@@ -5,6 +5,7 @@ export interface MenuItem {
   price: number;
   tags?: string[];
   optional?: string;
+  image?: string;
   composition?: { layers: { color: string; percentage: number; label: string }[] };
 }
 
@@ -46,6 +47,7 @@ export const menu: MenuSection[] = [
         name: "Alfajores Mama",
         description: "Nuestra versión casera, rellenos y cubiertos con chocolate.",
         price: 3500,
+        image: "/images/menu/alfajor-mama.jpg",
       },
     ],
   },
@@ -261,6 +263,7 @@ export const menu: MenuSection[] = [
         name: "Budín",
         description: "Consultar opciones.",
         price: 5000,
+        image: "/images/menu/budin.jpg",
       },
       {
         id: "brownie",
@@ -273,6 +276,7 @@ export const menu: MenuSection[] = [
         name: "Pain au chocolat",
         description: "",
         price: 5500,
+        image: "/images/menu/pain-au-chocolat.jpg",
       },
       {
         id: "cookies",
@@ -285,6 +289,7 @@ export const menu: MenuSection[] = [
         name: "Croissants",
         description: "",
         price: 5000,
+        image: "/images/menu/croissants.jpg",
       },
       {
         id: "medialunas",
@@ -297,12 +302,14 @@ export const menu: MenuSection[] = [
         name: "Palmeritas",
         description: "",
         price: 1200,
+        image: "/images/menu/palmeritas.jpg",
       },
       {
         id: "roll-de-canela",
         name: "Roll de canela",
         description: "",
         price: 5000,
+        image: "/images/menu/roll-canela.jpg",
       },
     ],
   },
@@ -314,12 +321,14 @@ export const menu: MenuSection[] = [
         name: "Jamón Crudo",
         description: "Jamón Crudo, rúcula, tomates cherry y provolone rallado.",
         price: 14000,
+        image: "/images/menu/sandwichs-jamon-crudo.jpg",
       },
       {
         id: "sandwich-lomo-ahumado",
         name: "Lomo Ahumado",
         description: "Lomo ahumado, pimientos al rescoldo en conserva y queso crema.",
         price: 12000,
+        image: "/images/menu/sandwichs-lomo-ahumado.jpg",
       },
       {
         id: "sandwich-roquefort",
@@ -401,6 +410,7 @@ export const menu: MenuSection[] = [
         name: "Rojo",
         description: "Frutos rojos.",
         price: 6000,
+        image: "/images/menu/smoothies-rojo.jpg",
       },
       {
         id: "smoothie-amarillo",
@@ -413,6 +423,7 @@ export const menu: MenuSection[] = [
         name: "Verde detox",
         description: "Kiwi, melón y pepino.",
         price: 6000,
+        image: "/images/menu/verde-detox.jpg",
       },
     ],
   },
