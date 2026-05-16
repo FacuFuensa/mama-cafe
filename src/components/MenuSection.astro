@@ -1,5 +1,6 @@
 ---
 import type { MenuSection } from '../data/menu.ts';
+import CoffeeGlass from './CoffeeGlass.astro';
 
 interface Props {
   section: MenuSection;
@@ -13,31 +14,59 @@ const { section } = Astro.props;
     {section.category}
   </h2>
 
+  {section.category === "Infusiones" && (
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 -mt-2">
+      {[
+        { color: "#27241c", label: "Café" },
+        { color: "#e6e3df", label: "Leche" },
+        { color: "#f5f3f0", label: "Espuma" },
+        { color: "#776358", label: "Chocolate" },
+        { color: "#c8d8e4", label: "Agua" },
+      ].map(({ color, label }) => (
+        <div class="flex items-center gap-1.5">
+          <span
+            class="inline-block w-3 h-3 shrink-0"
+            style={`background-color: ${color}; outline: 1px solid #2a2b2a;`}
+          />
+          <span class="text-xs text-gris/60">{label}</span>
+        </div>
+      ))}
+    </div>
+  )}
+
   <ul class="grid grid-cols-1 md:grid-cols-2 md:gap-x-12">
     {section.items.map((item) => (
       <li class="pb-6 mb-6 border-b border-gris/10 last:border-0 last:mb-0 last:pb-0">
-        <div class="flex items-baseline justify-between gap-4">
-          <span class="text-[0.9375rem] font-medium leading-snug text-gris">
-            {item.name}
-            {item.tags?.includes('sin-tacc') && (
-              <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-dulce/15 text-dulce align-middle">
-                Sin TACC
+        <div class="flex items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline justify-between gap-4">
+              <span class="text-[0.9375rem] font-medium leading-snug text-gris">
+                {item.name}
+                {item.tags?.includes('sin-tacc') && (
+                  <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-dulce/15 text-dulce align-middle">
+                    Sin TACC
+                  </span>
+                )}
               </span>
+              <span
+                class="shrink-0 text-gris/40 tabular-nums text-sm"
+                set:html={item.price === 0 ? '&mdash;' : '$' + item.price.toLocaleString('es-AR')}
+              />
+            </div>
+
+            {item.description && (
+              <p class="mt-1.5 text-sm text-gris/70 leading-relaxed">{item.description}</p>
             )}
-          </span>
-          <span
-            class="shrink-0 text-gris/40 tabular-nums text-sm"
-            set:html={item.price === 0 ? '&mdash;' : '$' + item.price.toLocaleString('es-AR')}
-          />
+
+            {item.optional && (
+              <p class="mt-1 text-xs italic text-dulce">{item.optional}</p>
+            )}
+          </div>
+
+          {item.composition && (
+            <CoffeeGlass layers={item.composition.layers} />
+          )}
         </div>
-
-        {item.description && (
-          <p class="mt-1.5 text-sm text-gris/70 leading-relaxed">{item.description}</p>
-        )}
-
-        {item.optional && (
-          <p class="mt-1 text-xs italic text-dulce">{item.optional}</p>
-        )}
       </li>
     ))}
   </ul>

@@ -1,0 +1,19 @@
+---
+interface Props {
+  layers: { color: string; percentage: number; label: string }[];
+}
+
+const { layers } = Astro.props;
+---
+
+<div class="relative w-10 h-[60px] shrink-0" aria-hidden="true">
+  <div class="absolute inset-0 rounded-b-md overflow-hidden flex flex-col-reverse">
+    {layers.map((layer) => (
+      <div
+        class="w-full shrink-0"
+        style={`height: ${layer.percentage}%; background-color: ${layer.color};`}
+      />
+    ))}
+  </div>
+  <div class="absolute inset-0 rounded-b-md border border-gris/30 pointer-events-none" />
+</div>

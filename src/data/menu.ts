@@ -5,6 +5,7 @@ export interface MenuItem {
   price: number;
   tags?: string[];
   optional?: string;
+  composition?: { layers: { color: string; percentage: number; label: string }[] };
 }
 
 export interface MenuSection {
@@ -73,66 +74,77 @@ export const menu: MenuSection[] = [
         name: "Expresso",
         description: "",
         price: 3600,
+        composition: { layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
       },
       {
         id: "expresso-doble",
         name: "Expresso doble",
         description: "",
         price: 4000,
+        composition: { layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
       },
       {
         id: "lungo",
         name: "Lungo",
         description: "",
         price: 3700,
+        composition: { layers: [{ color: "#27241c", percentage: 40, label: "espresso" }, { color: "#c8d8e4", percentage: 60, label: "water" }] },
       },
       {
         id: "americano",
         name: "Americano",
         description: "",
         price: 4200,
+        composition: { layers: [{ color: "#27241c", percentage: 30, label: "espresso" }, { color: "#c8d8e4", percentage: 70, label: "water" }] },
       },
       {
         id: "macchiato",
         name: "Macchiato",
         description: "",
         price: 3900,
+        composition: { layers: [{ color: "#27241c", percentage: 85, label: "espresso" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "cortado",
         name: "Cortado",
         description: "",
         price: 4000,
+        composition: { layers: [{ color: "#27241c", percentage: 50, label: "espresso" }, { color: "#e6e3df", percentage: 50, label: "milk" }] },
       },
       {
         id: "latte",
         name: "Latte",
         description: "",
         price: 4500,
+        composition: { layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#e6e3df", percentage: 65, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "capuccino",
         name: "Capuccino",
         description: "",
         price: 4400,
+        composition: { layers: [{ color: "#27241c", percentage: 33, label: "espresso" }, { color: "#e6e3df", percentage: 34, label: "milk" }, { color: "#f5f3f0", percentage: 33, label: "foam" }] },
       },
       {
         id: "flat-white",
         name: "Flat white",
         description: "",
         price: 4800,
+        composition: { layers: [{ color: "#27241c", percentage: 30, label: "espresso" }, { color: "#e6e3df", percentage: 70, label: "milk" }] },
       },
       {
         id: "mocca",
         name: "Mocca",
         description: "",
         price: 4800,
+        composition: { layers: [{ color: "#27241c", percentage: 25, label: "espresso" }, { color: "#776358", percentage: 25, label: "chocolate" }, { color: "#e6e3df", percentage: 35, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "chocolatada",
         name: "Chocolatada",
         description: "",
         price: 4400,
+        composition: { layers: [{ color: "#776358", percentage: 40, label: "chocolate" }, { color: "#e6e3df", percentage: 50, label: "milk" }, { color: "#f5f3f0", percentage: 10, label: "foam" }] },
       },
       {
         id: "te-en-hebras",
