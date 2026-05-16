@@ -1,0 +1,53 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actual.jpg'));
+---
+
+{hasImage && (
+  <div
+    id="event-popup"
+    class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/20 p-4 cursor-pointer"
+  >
+    <div class="relative w-[90vw] max-w-[500px] rounded-2xl overflow-hidden">
+      <button
+        id="event-popup-close"
+        aria-label="Cerrar"
+        class="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-off-white text-gris cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <img src="/images/evento-actual.jpg" alt="Evento actual" class="w-full block" />
+    </div>
+  </div>
+)}
+
+<script>
+  const popup = document.getElementById('event-popup');
+
+  if (popup) {
+    const KEY = 'mama-event-dismissed';
+
+    if (sessionStorage.getItem(KEY)) {
+      popup.remove();
+    } else {
+      const dismiss = () => {
+        popup.remove();
+        sessionStorage.setItem(KEY, '1');
+      };
+
+      popup.addEventListener('click', (e) => {
+        if (e.target === popup) dismiss();
+      });
+
+      document.getElementById('event-popup-close')
+        ?.addEventListener('click', dismiss);
+    }
+  }
+</script>

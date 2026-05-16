@@ -1,4 +1,5 @@
 ---
+import EventPopup from '../components/EventPopup.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -71,6 +72,7 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="bg-off-white text-gris font-sans">
+    <EventPopup />
     <slot />
   </body>
 </html>
