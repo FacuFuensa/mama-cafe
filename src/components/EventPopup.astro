@@ -6,48 +6,61 @@ const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actu
 ---
 
 {hasImage && (
-  <div
-    id="event-popup"
-    class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/20 p-4 cursor-pointer"
-  >
-    <div class="relative w-[90vw] max-w-[500px] rounded-2xl overflow-hidden">
-      <button
-        id="event-popup-close"
-        aria-label="Cerrar"
-        class="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-off-white text-gris cursor-pointer"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-      <img src="/images/evento-actual.jpg" alt="Evento actual" class="w-full block" />
+  <>
+    <div
+      id="event-popup"
+      class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/20 p-4 cursor-pointer"
+    >
+      <div class="relative w-[90vw] max-w-[500px] rounded-2xl overflow-hidden">
+        <button
+          id="event-popup-close"
+          aria-label="Cerrar"
+          class="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-off-white text-gris cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <img src="/images/evento-actual.jpg" alt="Evento actual" class="w-full block" />
+      </div>
     </div>
-  </div>
+    <button
+      id="ver-evento-btn"
+      class="fixed bottom-4 right-4 z-50 hidden opacity-0 transition-opacity duration-300 px-3 py-2 rounded-full text-xs shadow-md cursor-pointer"
+      style="background-color: #a47c53; color: #e6e3df;"
+    >
+      Ver evento
+    </button>
+  </>
 )}
 
 <script>
   const popup = document.getElementById('event-popup');
+  const btn = document.getElementById('ver-evento-btn');
 
-  if (popup) {
-    const KEY = 'mama-event-dismissed';
+  if (popup && btn) {
+    const dismiss = () => {
+      popup.classList.add('hidden');
+      btn.classList.remove('hidden');
+      requestAnimationFrame(() => btn.classList.remove('opacity-0'));
+    };
 
-    if (sessionStorage.getItem(KEY)) {
-      popup.remove();
-    } else {
-      const dismiss = () => {
-        popup.remove();
-        sessionStorage.setItem(KEY, '1');
-      };
+    const reopen = () => {
+      popup.classList.remove('hidden');
+      btn.classList.add('opacity-0');
+      btn.addEventListener('transitionend', () => btn.classList.add('hidden'), { once: true });
+    };
 
-      popup.addEventListener('click', (e) => {
-        if (e.target === popup) dismiss();
-      });
+    popup.addEventListener('click', (e) => {
+      if (e.target === popup) dismiss();
+    });
 
-      document.getElementById('event-popup-close')
-        ?.addEventListener('click', dismiss);
-    }
+    document.getElementById('event-popup-close')
+      ?.addEventListener('click', dismiss);
+
+    btn.addEventListener('click', reopen);
   }
 </script>
