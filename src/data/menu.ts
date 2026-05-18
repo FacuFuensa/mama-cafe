@@ -433,7 +433,7 @@ export const menu: MenuSection[] = [
       {
         id: "promo-arranque-productivo",
         name: "Arranque productivo",
-        description: "Desayuno Saludable o Clásico (con infusión simple) + Infusión simple.",
+        description: "Desayuno Saludable o Clásico + Infusión simple.",
         price: 11000,
       },
       {
@@ -445,7 +445,7 @@ export const menu: MenuSection[] = [
       {
         id: "promo-dia-productivo",
         name: "Día productivo",
-        description: "Desayuno Saludable o Clásico (con infusión simple) + Infusión simple + Almuerzo.",
+        description: "Desayuno Saludable o Clásico + Infusión simple + Almuerzo.",
         price: 25000,
       },
     ],
