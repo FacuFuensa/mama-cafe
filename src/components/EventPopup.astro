@@ -2,7 +2,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actual.jpg'));
+const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actual.png'));
 ---
 
 {hasImage && (
@@ -24,7 +24,7 @@ const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actu
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <img src="/images/evento-actual.jpg" alt="Evento actual" class="w-full block" />
+        <img src="/images/evento-actual.png" alt="Evento actual" class="w-full block" />
       </div>
     </div>
     <button
