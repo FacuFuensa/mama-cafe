@@ -99,6 +99,7 @@ const imageSizeClass =
                   src={item.image}
                   alt={item.name}
                   class="mt-3 rounded-lg w-full object-contain"
+                  onerror="var li=this.closest('[data-menu-item]');if(li){li.removeAttribute('data-menu-item');li.classList.remove('cursor-pointer','select-none');var c=li.querySelector('[data-chevron]');if(c)c.style.display='none';}"
                 />
               </div>
             )}
