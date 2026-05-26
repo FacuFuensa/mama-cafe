@@ -1,0 +1,30 @@
+---
+const error = Astro.url.searchParams.get('error');
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin — Māma Café</title>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    body { background:#faf7f2; font-family:'Josefin Sans',sans-serif; display:grid; place-items:center; min-height:100vh; margin:0; }
+    .card { background:#fff; border:1px solid #e8e0d0; padding:2.5rem; width:min(360px,90vw); border-radius:4px; }
+    h1 { font-size:1.1rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#1a1a1a; margin:0 0 1.75rem; text-align:center; }
+    input[type=password] { width:100%; box-sizing:border-box; padding:.7rem .9rem; border:1px solid #d4c9b0; border-radius:3px; font-family:inherit; font-size:.95rem; background:#fdf9f4; }
+    button { margin-top:1rem; width:100%; padding:.75rem; background:#b8934a; color:#fff; border:none; border-radius:3px; font-family:inherit; font-size:.95rem; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+    button:hover { background:#a07d3e; }
+    .error { color:#b94a4a; font-size:.85rem; margin-bottom:1rem; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>māma café — admin</h1>
+    {error && <p class="error">Contraseña incorrecta.</p>}
+    <form method="POST" action="/api/admin/auth">
+      <input type="password" name="password" placeholder="Contraseña" autofocus required />
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>
