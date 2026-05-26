@@ -1,0 +1,221 @@
+---
+import { supabaseAdmin } from '../../lib/supabase-admin';
+import '../../styles/global.css';
+
+const { data: events } = await supabaseAdmin
+  .from('events')
+  .select('id, title, image_path, is_active')
+  .order('created_at', { ascending: false })
+  .limit(1);
+
+const currentEvent = events?.[0] ?? null;
+---
+
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin — Māma Café</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-off-white text-gris font-sans min-h-screen">
+    <div class="max-w-xl mx-auto px-4 py-10">
+
+      <header class="flex items-center justify-between mb-10">
+        <h1 class="text-lg font-light tracking-widest lowercase">
+          <span class="font-semibold">măma café</span> — admin
+        </h1>
+        <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
+      </header>
+
+      <!-- Evento actual -->
+      <section class="mb-10">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">
+          Evento actual
+        </h2>
+
+        {currentEvent ? (
+          <div id="event-card" class="rounded-xl overflow-hidden border border-choco/20 bg-white/50">
+            <img
+              src={currentEvent.image_path}
+              alt={currentEvent.title}
+              class="w-full h-52 object-cover"
+            />
+            <div class="p-4 flex items-center justify-between gap-3">
+              <div>
+                <p class="font-semibold text-sm">{currentEvent.title}</p>
+                <p class={`text-xs mt-1 ${currentEvent.is_active ? 'text-dulce' : 'text-choco/60'}`}>
+                  {currentEvent.is_active ? '● Activo' : '○ Inactivo'}
+                </p>
+              </div>
+              <div class="flex gap-2 shrink-0">
+                <button
+                  id="toggle-btn"
+                  data-id={currentEvent.id}
+                  data-active={String(currentEvent.is_active)}
+                  class="px-3 py-1.5 text-xs rounded-lg border border-gris/30 hover:border-gris transition-colors cursor-pointer"
+                >
+                  {currentEvent.is_active ? 'Desactivar' : 'Activar'}
+                </button>
+                <button
+                  id="delete-btn"
+                  data-id={currentEvent.id}
+                  class="px-3 py-1.5 text-xs rounded-lg text-ladrillo border border-ladrillo/30 hover:bg-ladrillo/10 transition-colors cursor-pointer"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p class="text-sm text-choco italic">No hay ningún evento cargado.</p>
+        )}
+      </section>
+
+      <!-- Subir nuevo evento -->
+      <section>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">
+          Subir nuevo evento
+        </h2>
+
+        <form id="upload-form" class="space-y-4">
+          <div>
+            <label for="title" class="block text-xs font-semibold uppercase tracking-wider mb-1.5">
+              Título
+            </label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              required
+              placeholder="ej. Mercado artesanal · Sábado 8"
+              class="w-full px-3 py-2.5 rounded-lg border border-gris/25 bg-white/60 text-sm focus:outline-none focus:border-dulce transition-colors"
+            />
+          </div>
+
+          <div>
+            <label for="image" class="block text-xs font-semibold uppercase tracking-wider mb-1.5">
+              Imagen
+            </label>
+            <input
+              id="image"
+              name="image"
+              type="file"
+              accept="image/*"
+              required
+              class="w-full text-sm text-gris file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-dulce file:text-off-white hover:file:bg-choco file:cursor-pointer cursor-pointer"
+            />
+          </div>
+
+          <p id="status-msg" class="text-sm hidden"></p>
+
+          <button
+            id="submit-btn"
+            type="submit"
+            class="w-full py-2.5 rounded-lg bg-gris text-off-white text-sm font-semibold tracking-wider hover:bg-dark-choco transition-colors cursor-pointer"
+          >
+            Subir evento
+          </button>
+        </form>
+      </section>
+
+    </div>
+
+    <script>
+      const form = document.getElementById('upload-form') as HTMLFormElement;
+      const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      const statusMsg = document.getElementById('status-msg') as HTMLElement;
+      const toggleBtn = document.getElementById('toggle-btn') as HTMLButtonElement | null;
+      const deleteBtn = document.getElementById('delete-btn') as HTMLButtonElement | null;
+
+      function showStatus(msg: string, ok: boolean) {
+        statusMsg.textContent = msg;
+        statusMsg.className = `text-sm ${ok ? 'text-dulce' : 'text-ladrillo'}`;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.textContent = 'Subiendo...';
+        submitBtn.disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/upload-event', {
+            method: 'POST',
+            body: new FormData(form),
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            showStatus('¡Evento subido con éxito!', true);
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showStatus(`Error: ${json.error}`, false);
+            submitBtn.textContent = 'Subir evento';
+            submitBtn.disabled = false;
+          }
+        } catch {
+          showStatus('Error de red. Intentá de nuevo.', false);
+          submitBtn.textContent = 'Subir evento';
+          submitBtn.disabled = false;
+        }
+      });
+
+      toggleBtn?.addEventListener('click', async () => {
+        const id = toggleBtn.dataset.id!;
+        const currentActive = toggleBtn.dataset.active === 'true';
+        toggleBtn.textContent = 'Guardando...';
+        toggleBtn.disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/toggle-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, is_active: !currentActive }),
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            location.reload();
+          } else {
+            alert(`Error: ${json.error}`);
+            toggleBtn.textContent = currentActive ? 'Desactivar' : 'Activar';
+            toggleBtn.disabled = false;
+          }
+        } catch {
+          alert('Error de red.');
+          toggleBtn.textContent = currentActive ? 'Desactivar' : 'Activar';
+          toggleBtn.disabled = false;
+        }
+      });
+
+      deleteBtn?.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
+        const id = deleteBtn.dataset.id!;
+        deleteBtn.textContent = 'Eliminando...';
+        deleteBtn.disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/delete-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            location.reload();
+          } else {
+            alert(`Error: ${json.error}`);
+            deleteBtn.textContent = 'Eliminar';
+            deleteBtn.disabled = false;
+          }
+        } catch {
+          alert('Error de red.');
+          deleteBtn.textContent = 'Eliminar';
+          deleteBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

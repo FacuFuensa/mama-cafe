@@ -1,11 +1,15 @@
 ---
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { supabase } from '../lib/supabase';
 
-const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actual.png'));
+const { data: activeEvent } = await supabase
+  .from('events')
+  .select('id, title, image_path')
+  .eq('is_active', true)
+  .limit(1)
+  .single();
 ---
 
-{hasImage && (
+{activeEvent && (
   <>
     <div
       id="event-popup"
@@ -24,7 +28,7 @@ const hasImage = existsSync(join(process.cwd(), 'public', 'images', 'evento-actu
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <img src="/images/evento-actual.png" alt="Evento actual" class="w-full block" />
+        <img src={activeEvent.image_path} alt={activeEvent.title || 'Evento actual'} class="w-full block" />
       </div>
     </div>
     <button
