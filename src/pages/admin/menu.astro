@@ -1,0 +1,177 @@
+---
+import { supabaseAdmin } from '../../lib/supabase-admin';
+import '../../styles/global.css';
+
+const [{ data: categories }, { data: items }] = await Promise.all([
+  supabaseAdmin
+    .from('categories')
+    .select('id, name')
+    .order('display_order'),
+  supabaseAdmin
+    .from('menu_items')
+    .select('id, category_id, name, price')
+    .order('display_order'),
+]);
+
+type CatRow = { id: string; name: string };
+type ItemRow = { id: string; category_id: string; name: string; price: number };
+
+const sections = ((categories ?? []) as CatRow[])
+  .map((cat) => ({
+    ...cat,
+    items: ((items ?? []) as ItemRow[]).filter((i) => i.category_id === cat.id),
+  }))
+  .filter((c) => c.items.length > 0);
+---
+
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin — Māma Café</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-off-white text-gris font-sans min-h-screen">
+    <div class="max-w-xl mx-auto px-4 py-10 pb-32">
+
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-lg font-light tracking-widest lowercase">
+          <span class="font-semibold">măma café</span> — admin
+        </h1>
+        <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
+      </header>
+
+      <nav class="flex gap-6 mb-10">
+        <a
+          href="/admin/events"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+        >
+          Eventos
+        </a>
+        <a
+          href="/admin/menu"
+          class="text-xs font-semibold uppercase tracking-widest text-choco border-b-2 border-dulce pb-1"
+        >
+          Carta
+        </a>
+      </nav>
+
+      {sections.length === 0 ? (
+        <p class="text-sm text-choco italic">No hay ítems en la carta.</p>
+      ) : (
+        sections.map((section) => (
+          <section class="mb-8">
+            <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-3">
+              {section.name}
+            </h2>
+            <div class="space-y-0">
+              {section.items.map((item) => (
+                <div class="flex items-center justify-between gap-4 py-2.5 border-b border-choco/10 last:border-0">
+                  <span class="text-sm">{item.name}</span>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="text-xs text-choco/50 select-none">$</span>
+                    <input
+                      type="number"
+                      data-id={item.id}
+                      data-original={String(item.price)}
+                      value={item.price}
+                      min="0"
+                      step="1"
+                      class="price-input w-24 px-2 py-1 text-sm text-right rounded-lg border border-gris/20 bg-white/60 focus:outline-none focus:border-dulce transition-colors"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))
+      )}
+
+    </div>
+
+    <!-- Sticky save bar -->
+    <div
+      id="save-bar"
+      class="fixed bottom-0 left-0 right-0 hidden bg-off-white/95 backdrop-blur border-t border-choco/15 px-4 py-4"
+    >
+      <div class="max-w-xl mx-auto">
+        <button
+          id="save-btn"
+          class="w-full py-3 rounded-xl bg-gris text-off-white text-sm font-semibold tracking-wider hover:bg-dark-choco transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const inputs = document.querySelectorAll<HTMLInputElement>('.price-input');
+      const saveBar = document.getElementById('save-bar')!;
+      const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
+
+      const changes = new Map<string, number>();
+
+      function updateSaveBar() {
+        if (changes.size === 0) {
+          saveBar.classList.add('hidden');
+          return;
+        }
+        saveBar.classList.remove('hidden');
+        const label = changes.size === 1 ? '1 cambio' : `${changes.size} cambios`;
+        saveBtn.textContent = `Guardar ${label}`;
+      }
+
+      inputs.forEach((input) => {
+        input.addEventListener('input', () => {
+          const id = input.dataset.id!;
+          const original = Number(input.dataset.original);
+          const current = Math.round(Number(input.value));
+
+          if (!isNaN(current) && current >= 0 && current !== original) {
+            changes.set(id, current);
+            input.classList.add('bg-yellow-100', 'border-dulce');
+            input.classList.remove('bg-white/60');
+          } else {
+            changes.delete(id);
+            input.classList.remove('bg-yellow-100', 'border-dulce');
+            input.classList.add('bg-white/60');
+          }
+
+          updateSaveBar();
+        });
+      });
+
+      saveBtn.addEventListener('click', async () => {
+        if (changes.size === 0 || saveBtn.disabled) return;
+
+        const label = changes.size === 1 ? '1 cambio' : `${changes.size} cambios`;
+        saveBtn.textContent = 'Guardando...';
+        saveBtn.disabled = true;
+
+        const updates = Array.from(changes.entries()).map(([id, price]) => ({ id, price }));
+
+        try {
+          const res = await fetch('/api/admin/update-prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ updates }),
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            location.reload();
+          } else {
+            alert(`Error: ${json.error}`);
+            saveBtn.textContent = `Guardar ${label}`;
+            saveBtn.disabled = false;
+          }
+        } catch {
+          alert('Error de red. Intentá de nuevo.');
+          saveBtn.textContent = `Guardar ${label}`;
+          saveBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

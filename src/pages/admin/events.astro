@@ -22,12 +22,27 @@ const currentEvent = events?.[0] ?? null;
   <body class="bg-off-white text-gris font-sans min-h-screen">
     <div class="max-w-xl mx-auto px-4 py-10">
 
-      <header class="flex items-center justify-between mb-10">
+      <header class="flex items-center justify-between mb-6">
         <h1 class="text-lg font-light tracking-widest lowercase">
           <span class="font-semibold">măma café</span> — admin
         </h1>
         <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
       </header>
+
+      <nav class="flex gap-6 mb-10">
+        <a
+          href="/admin/events"
+          class="text-xs font-semibold uppercase tracking-widest text-choco border-b-2 border-dulce pb-1"
+        >
+          Eventos
+        </a>
+        <a
+          href="/admin/menu"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+        >
+          Carta
+        </a>
+      </nav>
 
       <!-- Evento actual -->
       <section class="mb-10">
