@@ -6,7 +6,7 @@ export interface MenuItem {
   tags?: string[];
   optional?: string;
   image?: string;
-  composition?: { layers: { color: string; percentage: number; label: string }[] };
+  composition?: { glassHeight?: number; layers: { color: string; percentage: number; label: string }[] };
 }
 
 export interface MenuSection {
@@ -82,7 +82,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 3600,
         image: "/images/menu/expresso.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
+        composition: { glassHeight: 24, layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
       },
       {
         id: "expresso-doble",
@@ -90,7 +90,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4000,
         image: "/images/menu/expresso-doble.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
+        composition: { glassHeight: 32, layers: [{ color: "#27241c", percentage: 100, label: "espresso" }] },
       },
       {
         id: "lungo",
@@ -98,7 +98,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 3700,
         image: "/images/menu/lungo.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 40, label: "espresso" }, { color: "#c8d8e4", percentage: 60, label: "water" }] },
+        composition: { glassHeight: 45, layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#c8d8e4", percentage: 80, label: "water" }] },
       },
       {
         id: "americano",
@@ -106,7 +106,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4200,
         image: "/images/menu/americano.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 30, label: "espresso" }, { color: "#c8d8e4", percentage: 70, label: "water" }] },
+        composition: { glassHeight: 54, layers: [{ color: "#27241c", percentage: 22, label: "espresso" }, { color: "#c8d8e4", percentage: 78, label: "water" }] },
       },
       {
         id: "macchiato",
@@ -114,7 +114,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 3900,
         image: "/images/menu/macchiato.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 85, label: "espresso" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
+        composition: { glassHeight: 28, layers: [{ color: "#27241c", percentage: 85, label: "espresso" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "cortado",
@@ -122,7 +122,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4000,
         image: "/images/menu/cortado.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 50, label: "espresso" }, { color: "#e6e3df", percentage: 50, label: "milk" }] },
+        composition: { glassHeight: 45, layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#e6e3df", percentage: 80, label: "milk" }] },
       },
       {
         id: "latte",
@@ -130,7 +130,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4500,
         image: "/images/menu/latte.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#e6e3df", percentage: 65, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
+        composition: { glassHeight: 60, layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#e6e3df", percentage: 65, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "capuccino",
@@ -138,7 +138,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4400,
         image: "/images/menu/capuccino.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 33, label: "espresso" }, { color: "#e6e3df", percentage: 34, label: "milk" }, { color: "#f5f3f0", percentage: 33, label: "foam" }] },
+        composition: { glassHeight: 60, layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#e6e3df", percentage: 45, label: "milk" }, { color: "#f5f3f0", percentage: 35, label: "foam" }] },
       },
       {
         id: "flat-white",
@@ -146,7 +146,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4800,
         image: "/images/menu/flat-white.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 30, label: "espresso" }, { color: "#e6e3df", percentage: 70, label: "milk" }] },
+        composition: { glassHeight: 60, layers: [{ color: "#27241c", percentage: 40, label: "espresso" }, { color: "#e6e3df", percentage: 60, label: "milk" }] },
       },
       {
         id: "mocca",
@@ -154,7 +154,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4800,
         image: "/images/menu/mocca.jpg",
-        composition: { layers: [{ color: "#27241c", percentage: 25, label: "espresso" }, { color: "#776358", percentage: 25, label: "chocolate" }, { color: "#e6e3df", percentage: 35, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
+        composition: { glassHeight: 60, layers: [{ color: "#27241c", percentage: 20, label: "espresso" }, { color: "#776358", percentage: 25, label: "chocolate" }, { color: "#e6e3df", percentage: 40, label: "milk" }, { color: "#f5f3f0", percentage: 15, label: "foam" }] },
       },
       {
         id: "chocolatada",
@@ -162,7 +162,7 @@ export const menu: MenuSection[] = [
         description: "",
         price: 4400,
         image: "/images/menu/chocolatada.jpg",
-        composition: { layers: [{ color: "#776358", percentage: 40, label: "chocolate" }, { color: "#e6e3df", percentage: 50, label: "milk" }, { color: "#f5f3f0", percentage: 10, label: "foam" }] },
+        composition: { glassHeight: 60, layers: [{ color: "#776358", percentage: 40, label: "chocolate" }, { color: "#e6e3df", percentage: 50, label: "milk" }, { color: "#f5f3f0", percentage: 10, label: "foam" }] },
       },
       {
         id: "te-en-hebras",

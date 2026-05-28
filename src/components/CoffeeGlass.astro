@@ -1,12 +1,13 @@
 ---
 interface Props {
   layers: { color: string; percentage: number; label: string }[];
+  glassHeight?: number;
 }
 
-const { layers } = Astro.props;
+const { layers, glassHeight = 60 } = Astro.props;
 ---
 
-<div class="relative w-10 h-[60px] shrink-0" aria-hidden="true">
+<div class="relative w-10 shrink-0" style={"height: " + glassHeight + "px"} aria-hidden="true">
   <div class="absolute inset-0 rounded-b-md overflow-hidden flex flex-col-reverse">
     {layers.map((layer) => (
       <div
