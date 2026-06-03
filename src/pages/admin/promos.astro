@@ -187,29 +187,65 @@ const statusLabel = (p: { is_active: boolean; expires_at: string | null }) => {
             {allPromos.map((p) => {
               const s = statusLabel(p);
               return (
-                <div class="flex items-center gap-3 rounded-xl border border-choco/15 bg-white/40 p-2.5">
-                  <img
-                    src={p.image_path}
-                    alt={p.title}
-                    class="w-16 h-16 rounded-lg object-cover shrink-0"
-                  />
-                  <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-sm truncate">{p.title}</p>
-                    <p class={`text-xs mt-0.5 ${s.cls}`}>{s.text}</p>
-                    <p class="text-xs mt-0.5 text-choco/50">
-                      Subida el {formatDateTime(p.created_at)}
-                      {p.expires_at ? ` · vence ${formatDate(p.expires_at)}` : ''}
-                    </p>
+                <div class="rounded-xl border border-choco/15 bg-white/40 p-2.5">
+                  <div class="flex items-center gap-3">
+                    <img
+                      src={p.image_path}
+                      alt={p.title}
+                      class="w-16 h-16 rounded-lg object-cover shrink-0"
+                    />
+                    <div class="min-w-0 flex-1">
+                      <p class="font-semibold text-sm truncate">{p.title}</p>
+                      <p class={`text-xs mt-0.5 ${s.cls}`}>{s.text}</p>
+                      <p class="text-xs mt-0.5 text-choco/50">
+                        Subida el {formatDateTime(p.created_at)}
+                        {p.expires_at ? ` · vence ${formatDate(p.expires_at)}` : ''}
+                      </p>
+                    </div>
+                    {!p.is_active && (
+                      <button
+                        data-activate-btn
+                        data-id={p.id}
+                        class="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gris/30 hover:border-gris transition-colors cursor-pointer"
+                      >
+                        Activar
+                      </button>
+                    )}
                   </div>
+
                   {!p.is_active && (
-                    <button
-                      data-toggle-btn
+                    <form
+                      data-activate-form
                       data-id={p.id}
-                      data-active="false"
-                      class="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gris/30 hover:border-gris transition-colors cursor-pointer"
+                      class="hidden mt-3 pt-3 border-t border-choco/10"
                     >
-                      Activar
-                    </button>
+                      <label class="block text-xs font-semibold uppercase tracking-wider text-choco/70 mb-1.5">
+                        Nueva vigencia (hasta)
+                      </label>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <input
+                          type="date"
+                          value={p.expires_at ?? ''}
+                          class="flex-1 min-w-[8rem] px-2 py-1.5 rounded-lg border border-gris/25 bg-white/60 text-sm focus:outline-none focus:border-dulce transition-colors"
+                        />
+                        <button
+                          type="submit"
+                          data-confirm-btn
+                          class="px-3 py-1.5 text-xs rounded-lg bg-gris text-off-white hover:bg-dark-choco transition-colors cursor-pointer"
+                        >
+                          Confirmar
+                        </button>
+                        <a
+                          href="#"
+                          data-cancel-btn
+                          data-id={p.id}
+                          class="text-xs text-choco/60 hover:underline cursor-pointer"
+                        >
+                          Cancelar
+                        </a>
+                      </div>
+                      <p class="text-xs text-choco/50 mt-1.5">Dejalo vacío para que no venza.</p>
+                    </form>
                   )}
                 </div>
               );
@@ -314,6 +350,60 @@ const statusLabel = (p: { is_active: boolean; expires_at: string | null }) => {
             alert('Error de red.');
             btn.textContent = original;
             btn.disabled = false;
+          }
+        });
+      });
+
+      // History: "Activar" reveals an inline expiration form before activating.
+      document.querySelectorAll<HTMLButtonElement>('[data-activate-btn]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id!;
+          const formEl = document.querySelector<HTMLFormElement>(`[data-activate-form][data-id="${id}"]`)!;
+          btn.classList.add('hidden');
+          formEl.classList.remove('hidden');
+        });
+      });
+
+      document.querySelectorAll<HTMLAnchorElement>('[data-cancel-btn]').forEach((link) => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const id = link.dataset.id!;
+          const formEl = document.querySelector<HTMLFormElement>(`[data-activate-form][data-id="${id}"]`)!;
+          const btn = document.querySelector<HTMLButtonElement>(`[data-activate-btn][data-id="${id}"]`)!;
+          formEl.classList.add('hidden');
+          btn.classList.remove('hidden');
+        });
+      });
+
+      document.querySelectorAll<HTMLFormElement>('[data-activate-form]').forEach((formEl) => {
+        formEl.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const id = formEl.dataset.id!;
+          const dateInput = formEl.querySelector<HTMLInputElement>('input[type="date"]')!;
+          const confirmBtn = formEl.querySelector<HTMLButtonElement>('[data-confirm-btn]')!;
+          const expires_at = dateInput.value || null;
+          const original = confirmBtn.textContent;
+          confirmBtn.textContent = 'Guardando...';
+          confirmBtn.disabled = true;
+
+          try {
+            const res = await fetch('/api/admin/toggle-promo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, is_active: true, expires_at }),
+            });
+            const json = await res.json();
+            if (json.success) {
+              location.reload();
+            } else {
+              alert(`Error: ${json.error}`);
+              confirmBtn.textContent = original;
+              confirmBtn.disabled = false;
+            }
+          } catch {
+            alert('Error de red.');
+            confirmBtn.textContent = original;
+            confirmBtn.disabled = false;
           }
         });
       });

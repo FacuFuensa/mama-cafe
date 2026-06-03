@@ -20,6 +20,7 @@ const { data: activeEvent } = await supabase
         <button
           id="event-popup-close"
           aria-label="Cerrar"
+          data-track="event_popup_close"
           class="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-off-white text-gris cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -34,6 +35,7 @@ const { data: activeEvent } = await supabase
     </div>
     <button
       id="ver-evento-btn"
+      data-track="event_popup_reopen"
       class="fixed bottom-4 right-4 z-50 hidden opacity-0 transition-opacity duration-300 px-3 py-2 rounded-full text-xs shadow-md cursor-pointer"
       style="background-color: #a47c53; color: #e6e3df;"
     >

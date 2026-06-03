@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../../../lib/supabase-admin';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { id, is_active } = await request.json();
+    const { id, is_active, expires_at } = await request.json();
 
     if (!id || typeof is_active !== 'boolean') {
       return new Response(
@@ -21,9 +21,15 @@ export const POST: APIRoute = async ({ request }) => {
         .neq('id', id);
     }
 
+    // When activating, also set the (possibly new) expiration. Empty → no expiration.
+    const updates: Record<string, unknown> = { is_active };
+    if (is_active) {
+      updates.expires_at = expires_at ? expires_at : null;
+    }
+
     const { error } = await supabaseAdmin
       .from('promos')
-      .update({ is_active })
+      .update(updates)
       .eq('id', id);
 
     if (error) {

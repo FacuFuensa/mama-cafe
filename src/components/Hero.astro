@@ -36,6 +36,7 @@ const { data: activePromo } = await supabase
     <div class="flex flex-col items-center gap-4 mt-12">
       <a
         href="#menu"
+        data-track="ver_carta_click"
         class="text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco"
       >
         Ver la carta ↓
@@ -45,6 +46,7 @@ const { data: activePromo } = await supabase
         href={whatsappURL}
         target="_blank"
         rel="noopener noreferrer"
+        data-track="whatsapp_click"
         class="text-xs tracking-[0.2em] uppercase text-gris/60 hover:text-dulce transition-colors duration-200"
       >
         Pedí o reservá
@@ -61,6 +63,7 @@ const { data: activePromo } = await supabase
         <a
           id="promos-trigger"
           href="#"
+          data-track="promo_click"
           class="text-xs tracking-[0.2em] uppercase font-semibold text-dulce hover:text-choco transition-colors duration-200"
         >
           Promos

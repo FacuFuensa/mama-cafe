@@ -35,7 +35,7 @@ const menu = await fetchMenu() ?? fallbackMenu;
       {superCategories.map(({ anchor, sections: sectionNames }) => {
         const groupSections = menu.filter(s => sectionNames.includes(s.category));
         return (
-          <div id={anchor} data-menu-group={anchor} class="scroll-mt-20 pt-10">
+          <div id={anchor} data-menu-group={anchor} data-track="menu_section_view" class="scroll-mt-20 pt-10">
             {groupSections.map(section => (
               <MenuSectionComponent section={section} />
             ))}

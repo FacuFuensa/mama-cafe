@@ -1,0 +1,126 @@
+---
+// Lightweight, privacy-friendly analytics. Inserts events directly into the
+// Supabase `analytics_events` table via the REST API using the anon key.
+// No cookies, no user identification — sessionStorage only.
+const SUPABASE_URL = import.meta.env.SUPABASE_URL;
+const ANON_KEY = import.meta.env.SUPABASE_ANON_KEY;
+---
+
+<script define:vars={{ SUPABASE_URL, ANON_KEY }}>
+  (function () {
+    // 8. Never track admin pages.
+    if (window.location.pathname.startsWith('/admin')) return;
+    if (!SUPABASE_URL || !ANON_KEY) return;
+
+    // 1. Session ID — groups events from one visit without identifying anyone.
+    let sessionId;
+    try {
+      sessionId = sessionStorage.getItem('mc_session_id');
+      if (!sessionId) {
+        sessionId =
+          (crypto && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        sessionStorage.setItem('mc_session_id', sessionId);
+      }
+    } catch (e) {
+      sessionId = null;
+    }
+
+    // 2. Capture UTM params once and persist them for the rest of the visit.
+    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'];
+    try {
+      const params = new URLSearchParams(window.location.search);
+      UTM_KEYS.forEach((key) => {
+        const value = params.get(key);
+        if (value) sessionStorage.setItem('mc_' + key, value);
+      });
+    } catch (e) {}
+
+    function getUtm(key) {
+      try {
+        return sessionStorage.getItem('mc_' + key);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 3. Crude device detection.
+    function getDevice() {
+      return window.innerWidth < 768 ? 'mobile' : 'desktop';
+    }
+
+    // 6 + 7. Fire-and-forget insert via the Supabase REST API. Never awaited,
+    // always wrapped — tracking must never affect the user experience.
+    function track(eventName, overrides) {
+      try {
+        const payload = Object.assign(
+          {
+            event_name: eventName,
+            page: window.location.pathname,
+            referrer: document.referrer || null,
+            utm_source: getUtm('utm_source'),
+            utm_medium: getUtm('utm_medium'),
+            utm_campaign: getUtm('utm_campaign'),
+            device: getDevice(),
+            session_id: sessionId,
+          },
+          overrides || {}
+        );
+
+        fetch(SUPABASE_URL + '/rest/v1/analytics_events', {
+          method: 'POST',
+          headers: {
+            apikey: ANON_KEY,
+            Authorization: 'Bearer ' + ANON_KEY,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    // 4. Page view on load.
+    track('page_view');
+
+    // 5. Interaction tracking via [data-track]. Delegated so it works
+    // regardless of when elements are added to the DOM.
+    document.addEventListener('click', function (e) {
+      const el = e.target && e.target.closest
+        ? e.target.closest('[data-track]')
+        : null;
+      // Skip menu groups — those fire on scroll via IntersectionObserver,
+      // not on click.
+      if (el && el.dataset && el.dataset.track && !el.hasAttribute('data-menu-group')) {
+        track(el.dataset.track);
+      }
+    });
+
+    // Menu section views — fire once per section as it scrolls in, with the
+    // section name carried in the `page` field for extra context.
+    try {
+      const groups = document.querySelectorAll('[data-menu-group]');
+      if (groups.length && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                const name = entry.target.getAttribute('data-menu-group');
+                track('menu_section_view', {
+                  page: window.location.pathname + '#' + name,
+                });
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.3 }
+        );
+        groups.forEach(function (group) {
+          observer.observe(group);
+        });
+      }
+    } catch (e) {}
+  })();
+</script>

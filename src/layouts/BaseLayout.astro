@@ -1,5 +1,6 @@
 ---
 import EventPopup from '../components/EventPopup.astro';
+import Analytics from '../components/Analytics.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -74,6 +75,7 @@ const jsonLd = {
   <body class="bg-off-white text-gris font-sans">
     <EventPopup />
     <slot />
+    <Analytics />
   </body>
   <script>
     import { inject } from '@vercel/analytics';
