@@ -1,0 +1,333 @@
+---
+import { supabaseAdmin } from '../../lib/supabase-admin';
+import { superCategories } from '../../data/categories';
+import '../../styles/global.css';
+
+// ── Period selector (works without JS via ?period= query param) ──
+const periodParam = Astro.url.searchParams.get('period') ?? '7';
+const period = ['hoy', '7', '30'].includes(periodParam) ? periodParam : '7';
+
+let sinceISO: string;
+if (period === 'hoy') {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  sinceISO = d.toISOString();
+} else {
+  sinceISO = new Date(Date.now() - Number(period) * 86400000).toISOString();
+}
+
+const periodOptions = [
+  { value: 'hoy', label: 'Hoy' },
+  { value: '7', label: '7 días' },
+  { value: '30', label: '30 días' },
+];
+const periodCaption =
+  period === 'hoy' ? 'Mostrando datos de hoy' : `Mostrando los últimos ${period} días`;
+
+// ── Fetch (single read, aggregated in JS) ──
+type Ev = {
+  event_name: string | null;
+  page: string | null;
+  referrer: string | null;
+  utm_source: string | null;
+  device: string | null;
+  session_id: string | null;
+};
+
+const { data: rawEvents } = await supabaseAdmin
+  .from('analytics_events')
+  .select('event_name, page, referrer, utm_source, device, session_id')
+  .gte('created_at', sinceISO)
+  .limit(100000);
+
+// Filter out localhost / dev traffic from every metric below.
+const events: Ev[] = (rawEvents ?? []).filter((e) => {
+  const page = e.page ?? '';
+  const ref = e.referrer ?? '';
+  if (page.startsWith('localhost')) return false;
+  if (ref.includes('localhost')) return false;
+  return true;
+});
+
+// ── Key metrics ──
+const pageViews = events.filter((e) => e.event_name === 'page_view');
+const visitasTotales = pageViews.length;
+
+const visitantesUnicos = new Set(
+  pageViews.map((e) => e.session_id).filter((s): s is string => !!s)
+).size;
+
+const allSessions = new Set(
+  events.map((e) => e.session_id).filter((s): s is string => !!s)
+);
+const engagedSessions = new Set(
+  events
+    .filter((e) => e.event_name && e.event_name !== 'page_view')
+    .map((e) => e.session_id)
+    .filter((s): s is string => !!s)
+);
+const tasaInteraccion =
+  allSessions.size > 0 ? Math.round((engagedSessions.size / allSessions.size) * 100) : 0;
+
+// ── Helpers ──
+function countBy<T>(items: T[], key: (item: T) => string | null) {
+  const map = new Map<string, number>();
+  for (const item of items) {
+    const k = key(item);
+    if (!k) continue;
+    map.set(k, (map.get(k) ?? 0) + 1);
+  }
+  return [...map.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// ── Origen de visitas ──
+function cleanReferrer(ref: string | null): string {
+  if (!ref) return 'Directo';
+  const stripped = ref.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  if (!stripped) return 'Directo';
+  return stripped.split('/')[0]; // hostname only, for clean grouping
+}
+const referrerRows = countBy(pageViews, (e) => cleanReferrer(e.referrer));
+const maxReferrer = referrerRows[0]?.count ?? 1;
+
+const utmRows = countBy(pageViews, (e) => e.utm_source);
+const maxUtm = utmRows[0]?.count ?? 1;
+
+// ── Dispositivos ──
+const mobileCount = pageViews.filter((e) => e.device === 'mobile').length;
+const desktopCount = pageViews.filter((e) => e.device === 'desktop').length;
+const deviceTotal = mobileCount + desktopCount;
+const mobilePct = deviceTotal ? Math.round((mobileCount / deviceTotal) * 100) : 0;
+const desktopPct = deviceTotal ? 100 - mobilePct : 0;
+
+// ── Acciones más populares ──
+const ACTION_LABELS: Record<string, string> = {
+  whatsapp_click: 'Click en WhatsApp',
+  ver_carta_click: 'Ver la carta',
+  promo_click: 'Click en promo',
+  event_popup_close: 'Cerró popup evento',
+  event_popup_reopen: 'Reabrió popup evento',
+  promo_popup_close: 'Cerró popup promo',
+};
+const actionRows = countBy(
+  events.filter(
+    (e) =>
+      e.event_name && e.event_name !== 'page_view' && e.event_name !== 'menu_section_view'
+  ),
+  (e) => e.event_name
+).map((r) => ({ ...r, label: ACTION_LABELS[r.label] ?? r.label }));
+const maxAction = actionRows[0]?.count ?? 1;
+
+// ── Secciones del menú más vistas ──
+const SECTION_LABELS: Record<string, string> = Object.fromEntries(
+  superCategories.map((c) => [c.anchor, c.label])
+);
+function sectionName(page: string | null): string | null {
+  if (!page) return null;
+  const anchor = page.includes('#') ? page.split('#')[1] : page;
+  if (!anchor) return null;
+  return SECTION_LABELS[anchor] ?? anchor;
+}
+const menuRows = countBy(
+  events.filter((e) => e.event_name === 'menu_section_view'),
+  (e) => sectionName(e.page)
+);
+const maxMenu = menuRows[0]?.count ?? 1;
+---
+
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin — Māma Café</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-off-white text-gris font-sans min-h-screen">
+    <div class="max-w-xl mx-auto px-4 py-10 pb-32">
+
+      <header class="flex items-center justify-between mb-6">
+        <h1 class="text-lg font-light tracking-widest lowercase">
+          <span class="font-semibold">măma café</span> — admin
+        </h1>
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
+          <form method="POST" action="/api/admin/logout">
+            <button type="submit" class="text-sm text-dulce hover:underline">Cerrar sesión</button>
+          </form>
+        </div>
+      </header>
+
+      <nav class="flex gap-6 mb-10">
+        <a
+          href="/admin/events"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+        >
+          Eventos
+        </a>
+        <a
+          href="/admin/menu"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+        >
+          Carta
+        </a>
+        <a
+          href="/admin/promos"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+        >
+          Promos
+        </a>
+        <a
+          href="/admin/analytics"
+          class="text-xs font-semibold uppercase tracking-widest text-choco border-b-2 border-dulce pb-1"
+        >
+          Analytics
+        </a>
+      </nav>
+
+      <!-- Selector de período -->
+      <div class="flex gap-2 mb-2">
+        {periodOptions.map((opt) => (
+          <a
+            href={`/admin/analytics?period=${opt.value}`}
+            class={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+              period === opt.value
+                ? 'bg-gris text-off-white border-gris'
+                : 'border-gris/30 text-choco hover:border-gris'
+            }`}
+          >
+            {opt.label}
+          </a>
+        ))}
+      </div>
+      <p class="text-xs text-choco/50 mb-8">{periodCaption}</p>
+
+      <!-- Métricas clave -->
+      <section class="mb-10">
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-xl border border-choco/15 bg-white/40 p-4 text-center">
+            <p class="text-3xl md:text-4xl font-light text-gris tabular-nums">{visitantesUnicos}</p>
+            <p class="text-xs mt-1 text-choco/70 leading-tight">Visitantes únicos</p>
+          </div>
+          <div class="rounded-xl border border-choco/15 bg-white/40 p-4 text-center">
+            <p class="text-3xl md:text-4xl font-light text-gris tabular-nums">{visitasTotales}</p>
+            <p class="text-xs mt-1 text-choco/70 leading-tight">Visitas totales</p>
+          </div>
+          <div class="rounded-xl border border-choco/15 bg-white/40 p-4 text-center">
+            <p class="text-3xl md:text-4xl font-light text-gris tabular-nums">{tasaInteraccion}%</p>
+            <p class="text-xs mt-1 text-choco/70 leading-tight">Tasa de interacción</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Origen de visitas -->
+      <section class="mb-10">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">Origen de visitas</h2>
+        {referrerRows.length === 0 ? (
+          <p class="text-sm text-choco/70 italic">Todavía no hay datos.</p>
+        ) : (
+          <div class="space-y-2">
+            {referrerRows.map((r) => (
+              <div class="flex items-center gap-3">
+                <span class="text-sm w-40 truncate" title={r.label}>{r.label}</span>
+                <div class="flex-1 h-2 rounded-full bg-choco/10 overflow-hidden">
+                  <div class="h-full bg-dulce/70" style={`width:${Math.round((r.count / maxReferrer) * 100)}%`}></div>
+                </div>
+                <span class="text-sm tabular-nums text-choco/70 w-10 text-right">{r.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {utmRows.length > 0 && (
+          <div class="mt-6">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-choco/60 mb-3">Campañas (UTM)</h3>
+            <div class="space-y-2">
+              {utmRows.map((r) => (
+                <div class="flex items-center gap-3">
+                  <span class="text-sm w-40 truncate" title={r.label}>{r.label}</span>
+                  <div class="flex-1 h-2 rounded-full bg-choco/10 overflow-hidden">
+                    <div class="h-full bg-dulce/70" style={`width:${Math.round((r.count / maxUtm) * 100)}%`}></div>
+                  </div>
+                  <span class="text-sm tabular-nums text-choco/70 w-10 text-right">{r.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <!-- Dispositivos -->
+      <section class="mb-10">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">Dispositivos</h2>
+        {deviceTotal === 0 ? (
+          <p class="text-sm text-choco/70 italic">Todavía no hay datos.</p>
+        ) : (
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span>Mobile</span>
+                <span class="text-choco/70 tabular-nums">{mobilePct}% · {mobileCount}</span>
+              </div>
+              <div class="h-2 rounded-full bg-choco/10 overflow-hidden">
+                <div class="h-full bg-dulce" style={`width:${mobilePct}%`}></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span>Desktop</span>
+                <span class="text-choco/70 tabular-nums">{desktopPct}% · {desktopCount}</span>
+              </div>
+              <div class="h-2 rounded-full bg-choco/10 overflow-hidden">
+                <div class="h-full bg-choco/50" style={`width:${desktopPct}%`}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <!-- Acciones más populares -->
+      <section class="mb-10">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">Acciones más populares</h2>
+        {actionRows.length === 0 ? (
+          <p class="text-sm text-choco/70 italic">Todavía no hay datos.</p>
+        ) : (
+          <div class="space-y-2">
+            {actionRows.map((r) => (
+              <div class="flex items-center gap-3">
+                <span class="text-sm w-44 truncate" title={r.label}>{r.label}</span>
+                <div class="flex-1 h-2 rounded-full bg-choco/10 overflow-hidden">
+                  <div class="h-full bg-dulce/70" style={`width:${Math.round((r.count / maxAction) * 100)}%`}></div>
+                </div>
+                <span class="text-sm tabular-nums text-choco/70 w-10 text-right">{r.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Secciones del menú más vistas -->
+      <section>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">Secciones del menú más vistas</h2>
+        {menuRows.length === 0 ? (
+          <p class="text-sm text-choco/70 italic">Todavía no hay datos.</p>
+        ) : (
+          <div class="space-y-2">
+            {menuRows.map((r) => (
+              <div class="flex items-center gap-3">
+                <span class="text-sm w-44 truncate" title={r.label}>{r.label}</span>
+                <div class="flex-1 h-2 rounded-full bg-choco/10 overflow-hidden">
+                  <div class="h-full bg-dulce/70" style={`width:${Math.round((r.count / maxMenu) * 100)}%`}></div>
+                </div>
+                <span class="text-sm tabular-nums text-choco/70 w-10 text-right">{r.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+    </div>
+  </body>
+</html>
