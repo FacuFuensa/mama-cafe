@@ -5,7 +5,7 @@ export const POST: APIRoute = ({ redirect }) => {
     status: 302,
     headers: {
       Location: '/admin/login',
-      'Set-Cookie': 'admin_session=; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=0',
+      'Set-Cookie': 'admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
     },
   });
 };

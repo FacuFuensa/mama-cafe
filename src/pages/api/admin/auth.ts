@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const isProd = import.meta.env.PROD;
   const cookie = [
     `admin_session=${expected}`,
-    'Path=/admin',
+    'Path=/',
     'HttpOnly',
     'SameSite=Lax',
     `Max-Age=${7 * 24 * 60 * 60}`,

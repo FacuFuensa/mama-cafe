@@ -2,19 +2,28 @@
 import { supabaseAdmin } from '../../lib/supabase-admin';
 import '../../styles/global.css';
 
-const { data: events } = await supabaseAdmin
-  .from('events')
-  .select('id, title, image_path, is_active, expires_at')
-  .order('created_at', { ascending: false })
-  .limit(1);
+const { data: promos } = await supabaseAdmin
+  .from('promos')
+  .select('id, title, image_path, is_active, expires_at, created_at')
+  .order('created_at', { ascending: false });
 
-const currentEvent = events?.[0] ?? null;
+const allPromos = promos ?? [];
+const activePromo = allPromos.find((p) => p.is_active) ?? null;
 
 const todayStr = new Date().toISOString().split('T')[0];
-const isExpired = currentEvent?.expires_at != null && currentEvent.expires_at < todayStr;
+const isExpired = (expires_at: string | null) =>
+  expires_at != null && expires_at < todayStr;
+
 const formatDate = (d: string) => {
   const [y, m, day] = d.split('-');
   return `${day}/${m}/${y}`;
+};
+const formatDateTime = (iso: string) => formatDate(iso.split('T')[0]);
+
+const statusLabel = (p: { is_active: boolean; expires_at: string | null }) => {
+  if (isExpired(p.expires_at)) return { text: '● Vencida', cls: 'text-ladrillo' };
+  if (p.is_active) return { text: '● Activa', cls: 'text-dulce' };
+  return { text: '○ Inactiva', cls: 'text-choco/60' };
 };
 ---
 
@@ -27,7 +36,7 @@ const formatDate = (d: string) => {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="bg-off-white text-gris font-sans min-h-screen">
-    <div class="max-w-xl mx-auto px-4 py-10">
+    <div class="max-w-xl mx-auto px-4 py-10 pb-32">
 
       <header class="flex items-center justify-between mb-6">
         <h1 class="text-lg font-light tracking-widest lowercase">
@@ -39,7 +48,7 @@ const formatDate = (d: string) => {
       <nav class="flex gap-6 mb-10">
         <a
           href="/admin/events"
-          class="text-xs font-semibold uppercase tracking-widest text-choco border-b-2 border-dulce pb-1"
+          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
         >
           Eventos
         </a>
@@ -51,69 +60,59 @@ const formatDate = (d: string) => {
         </a>
         <a
           href="/admin/promos"
-          class="text-xs font-semibold uppercase tracking-widest text-choco/40 hover:text-choco/70 transition-colors pb-1"
+          class="text-xs font-semibold uppercase tracking-widest text-choco border-b-2 border-dulce pb-1"
         >
           Promos
         </a>
       </nav>
 
-      <!-- Evento actual -->
+      <!-- Promo activa -->
       <section class="mb-10">
         <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">
-          Evento actual
+          Promo activa
         </h2>
 
-        {currentEvent ? (
-          <div id="event-card" class="rounded-xl overflow-hidden border border-choco/20 bg-white/50">
+        {activePromo ? (
+          <div class="rounded-xl overflow-hidden border border-choco/20 bg-white/50">
             <img
-              src={currentEvent.image_path}
-              alt={currentEvent.title}
+              src={activePromo.image_path}
+              alt={activePromo.title}
               class="w-full h-52 object-cover"
             />
             <div class="p-4 flex items-center justify-between gap-3">
               <div>
-                <p class="font-semibold text-sm">{currentEvent.title}</p>
-                {isExpired ? (
-                  <p class="text-xs mt-1 text-ladrillo">● Vencido</p>
-                ) : (
-                  <p class={`text-xs mt-1 ${currentEvent.is_active ? 'text-dulce' : 'text-choco/60'}`}>
-                    {currentEvent.is_active ? '● Activo' : '○ Inactivo'}
-                  </p>
-                )}
+                <p class="font-semibold text-sm">{activePromo.title}</p>
+                {(() => {
+                  const s = statusLabel(activePromo);
+                  return <p class={`text-xs mt-1 ${s.cls}`}>{s.text}</p>;
+                })()}
                 <p class="text-xs mt-1 text-choco/50">
-                  {currentEvent.expires_at
-                    ? `Vigencia hasta ${formatDate(currentEvent.expires_at)}`
+                  {activePromo.expires_at
+                    ? `Vigencia hasta ${formatDate(activePromo.expires_at)}`
                     : 'Sin vencimiento'}
                 </p>
               </div>
-              <div class="flex gap-2 shrink-0">
+              <div class="shrink-0">
                 <button
-                  id="toggle-btn"
-                  data-id={currentEvent.id}
-                  data-active={String(currentEvent.is_active)}
+                  data-toggle-btn
+                  data-id={activePromo.id}
+                  data-active="true"
                   class="px-3 py-1.5 text-xs rounded-lg border border-gris/30 hover:border-gris transition-colors cursor-pointer"
                 >
-                  {currentEvent.is_active ? 'Desactivar' : 'Activar'}
-                </button>
-                <button
-                  id="delete-btn"
-                  data-id={currentEvent.id}
-                  class="px-3 py-1.5 text-xs rounded-lg text-ladrillo border border-ladrillo/30 hover:bg-ladrillo/10 transition-colors cursor-pointer"
-                >
-                  Eliminar
+                  Desactivar
                 </button>
               </div>
             </div>
           </div>
         ) : (
-          <p class="text-sm text-choco italic">No hay ningún evento cargado.</p>
+          <p class="text-sm text-choco italic">No hay ninguna promo activa.</p>
         )}
       </section>
 
-      <!-- Subir nuevo evento -->
-      <section>
+      <!-- Subir nueva promo -->
+      <section class="mb-10">
         <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">
-          Subir nuevo evento
+          Subir nueva promo
         </h2>
 
         <form id="upload-form" class="space-y-4">
@@ -126,7 +125,7 @@ const formatDate = (d: string) => {
               name="title"
               type="text"
               required
-              placeholder="ej. Mercado artesanal · Sábado 8"
+              placeholder="ej. 2x1 en cafés · todo agosto"
               class="w-full px-3 py-2.5 rounded-lg border border-gris/25 bg-white/60 text-sm focus:outline-none focus:border-dulce transition-colors"
             />
           </div>
@@ -165,9 +164,53 @@ const formatDate = (d: string) => {
             type="submit"
             class="w-full py-2.5 rounded-lg bg-gris text-off-white text-sm font-semibold tracking-wider hover:bg-dark-choco transition-colors cursor-pointer"
           >
-            Subir evento
+            Subir promo
           </button>
         </form>
+      </section>
+
+      <!-- Historial de promos -->
+      <section>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-choco mb-4">
+          Historial de promos
+        </h2>
+
+        {allPromos.length === 0 ? (
+          <p class="text-sm text-choco italic">Todavía no se subió ninguna promo.</p>
+        ) : (
+          <div class="space-y-3">
+            {allPromos.map((p) => {
+              const s = statusLabel(p);
+              return (
+                <div class="flex items-center gap-3 rounded-xl border border-choco/15 bg-white/40 p-2.5">
+                  <img
+                    src={p.image_path}
+                    alt={p.title}
+                    class="w-16 h-16 rounded-lg object-cover shrink-0"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-sm truncate">{p.title}</p>
+                    <p class={`text-xs mt-0.5 ${s.cls}`}>{s.text}</p>
+                    <p class="text-xs mt-0.5 text-choco/50">
+                      Subida el {formatDateTime(p.created_at)}
+                      {p.expires_at ? ` · vence ${formatDate(p.expires_at)}` : ''}
+                    </p>
+                  </div>
+                  {!p.is_active && (
+                    <button
+                      data-toggle-btn
+                      data-id={p.id}
+                      data-active="false"
+                      class="shrink-0 px-3 py-1.5 text-xs rounded-lg border border-gris/30 hover:border-gris transition-colors cursor-pointer"
+                    >
+                      Activar
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
     </div>
@@ -176,8 +219,6 @@ const formatDate = (d: string) => {
       const form = document.getElementById('upload-form') as HTMLFormElement;
       const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
       const statusMsg = document.getElementById('status-msg') as HTMLElement;
-      const toggleBtn = document.getElementById('toggle-btn') as HTMLButtonElement | null;
-      const deleteBtn = document.getElementById('delete-btn') as HTMLButtonElement | null;
 
       function showStatus(msg: string, ok: boolean) {
         statusMsg.textContent = msg;
@@ -220,81 +261,56 @@ const formatDate = (d: string) => {
           const fd = new FormData(form);
           fd.set('image', compressed, originalFile.name.replace(/\.[^.]+$/, '.jpg'));
 
-          const res = await fetch('/api/admin/upload-event', {
+          const res = await fetch('/api/admin/upload-promo', {
             method: 'POST',
             body: fd,
           });
           const json = await res.json();
 
           if (json.success) {
-            showStatus('¡Evento subido con éxito!', true);
+            showStatus('¡Promo subida con éxito!', true);
             setTimeout(() => location.reload(), 800);
           } else {
             showStatus(`Error: ${json.error}`, false);
-            submitBtn.textContent = 'Subir evento';
+            submitBtn.textContent = 'Subir promo';
             submitBtn.disabled = false;
           }
         } catch {
           showStatus('Error de red. Intentá de nuevo.', false);
-          submitBtn.textContent = 'Subir evento';
+          submitBtn.textContent = 'Subir promo';
           submitBtn.disabled = false;
         }
       });
 
-      toggleBtn?.addEventListener('click', async () => {
-        const id = toggleBtn.dataset.id!;
-        const currentActive = toggleBtn.dataset.active === 'true';
-        toggleBtn.textContent = 'Guardando...';
-        toggleBtn.disabled = true;
+      document.querySelectorAll<HTMLButtonElement>('[data-toggle-btn]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id!;
+          const currentActive = btn.dataset.active === 'true';
+          const original = btn.textContent;
+          btn.textContent = 'Guardando...';
+          btn.disabled = true;
 
-        try {
-          const res = await fetch('/api/admin/toggle-event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, is_active: !currentActive }),
-          });
-          const json = await res.json();
+          try {
+            const res = await fetch('/api/admin/toggle-promo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, is_active: !currentActive }),
+            });
+            const json = await res.json();
 
-          if (json.success) {
-            location.reload();
-          } else {
-            alert(`Error: ${json.error}`);
-            toggleBtn.textContent = currentActive ? 'Desactivar' : 'Activar';
-            toggleBtn.disabled = false;
+            if (json.success) {
+              location.reload();
+            } else {
+              alert(`Error: ${json.error}`);
+              btn.textContent = original;
+              btn.disabled = false;
+            }
+          } catch {
+            alert('Error de red.');
+            btn.textContent = original;
+            btn.disabled = false;
           }
-        } catch {
-          alert('Error de red.');
-          toggleBtn.textContent = currentActive ? 'Desactivar' : 'Activar';
-          toggleBtn.disabled = false;
-        }
-      });
-
-      deleteBtn?.addEventListener('click', async () => {
-        if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
-        const id = deleteBtn.dataset.id!;
-        deleteBtn.textContent = 'Eliminando...';
-        deleteBtn.disabled = true;
-
-        try {
-          const res = await fetch('/api/admin/delete-event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id }),
-          });
-          const json = await res.json();
-
-          if (json.success) {
-            location.reload();
-          } else {
-            alert(`Error: ${json.error}`);
-            deleteBtn.textContent = 'Eliminar';
-            deleteBtn.disabled = false;
-          }
-        } catch {
-          alert('Error de red.');
-          deleteBtn.textContent = 'Eliminar';
-          deleteBtn.disabled = false;
-        }
+        });
       });
     </script>
   </body>

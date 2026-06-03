@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 
-const PROTECTED = /^\/admin\//;
+const PROTECTED = /^\/(admin|api\/admin)\//;
 const EXCLUDED = new Set(['/admin/login', '/api/admin/auth']);
 
 export const onRequest = defineMiddleware(({ url, cookies, redirect }, next) => {

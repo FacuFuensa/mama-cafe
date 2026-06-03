@@ -3,8 +3,9 @@ import { supabase } from '../lib/supabase';
 
 const { data: activeEvent } = await supabase
   .from('events')
-  .select('id, title, image_path')
+  .select('id, title, image_path, expires_at')
   .eq('is_active', true)
+  .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString().split('T')[0])
   .limit(1)
   .single();
 ---

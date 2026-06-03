@@ -6,7 +6,6 @@ export const POST: APIRoute = async ({ request }) => {
     const formData = await request.formData();
     const image = formData.get('image') as File | null;
     const title = formData.get('title') as string | null;
-    const isActive = formData.get('is_active') !== 'false'; // defaults true
     const expiresAt = (formData.get('expires_at') as string | null)?.trim() || null;
 
     if (!image || !title) {
@@ -16,19 +15,28 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const ext = image.name.split('.').pop() ?? 'jpg';
-    const filename = `event-${Date.now()}.${ext}`;
-    const buffer = new Uint8Array(await image.arrayBuffer());
-
-    // Remove all existing images from bucket
-    const { data: existing } = await supabaseAdmin.storage.from('events').list();
-    if (existing?.length) {
-      await supabaseAdmin.storage.from('events').remove(existing.map(f => f.name));
+    // Only allow real image types; derive the extension from the validated
+    // MIME rather than trusting the user-supplied filename.
+    const ALLOWED: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+    };
+    const ext = ALLOWED[image.type];
+    if (!ext) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Formato de imagen no permitido' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Upload new image
+    const filename = `promo-${Date.now()}.${ext}`;
+    const buffer = new Uint8Array(await image.arrayBuffer());
+
+    // Upload new image — old images are kept for history (no removal).
     const { error: uploadError } = await supabaseAdmin.storage
-      .from('events')
+      .from('promos')
       .upload(filename, buffer, { contentType: image.type });
 
     if (uploadError) {
@@ -38,15 +46,15 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const { data: urlData } = supabaseAdmin.storage.from('events').getPublicUrl(filename);
+    const { data: urlData } = supabaseAdmin.storage.from('promos').getPublicUrl(filename);
 
-    // Deactivate all existing events
-    await supabaseAdmin.from('events').update({ is_active: false }).eq('is_active', true);
+    // Deactivate all existing promos (only one active at a time)
+    await supabaseAdmin.from('promos').update({ is_active: false }).eq('is_active', true);
 
-    // Insert new event row
-    const { data: event, error: insertError } = await supabaseAdmin
-      .from('events')
-      .insert({ title, image_path: urlData.publicUrl, is_active: isActive, expires_at: expiresAt })
+    // Insert new promo row, active
+    const { data: promo, error: insertError } = await supabaseAdmin
+      .from('promos')
+      .insert({ title, image_path: urlData.publicUrl, is_active: true, expires_at: expiresAt })
       .select()
       .single();
 
@@ -57,7 +65,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    return new Response(JSON.stringify({ success: true, event }), {
+    return new Response(JSON.stringify({ success: true, promo }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
