@@ -52,7 +52,12 @@ const sections = ((categories ?? []) as CatRow[])
         <h1 class="text-lg font-light tracking-widest lowercase">
           <span class="font-semibold">măma café</span> — admin
         </h1>
-        <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-sm text-dulce hover:underline">← ver sitio</a>
+          <form method="POST" action="/api/admin/logout">
+            <button type="submit" class="text-sm text-dulce hover:underline">Cerrar sesión</button>
+          </form>
+        </div>
       </header>
 
       <nav class="flex gap-6 mb-10">
